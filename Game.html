@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Hensin</title>
+	<script type="text/javascript" src='create_js.js'></script>
+	<script type="text/javascript">
+		
+		var bg_x , bg_y;
+		bg_x = bg_y = 0;
+
+		var width, height;
+
+		var speed = 10;
+
+		var isFly = false;
+
+		var score = 0;
+		
+		function reset_pos(obj)
+		{
+			obj.x = width;
+			obj.y = Math.round(Math.random()*80)*Math.round(Math.random()*3);
+		}
+
+		function loadHandler(event) 
+		{
+		     var instance = createjs.Sound.play("sound");  
+		     instance.addEventListener("complete", createjs.proxy(this.handleComplete, this));
+		     instance.volume = 1;
+ 		}
+
+		function init()
+		{
+			// init component
+			var stage = new createjs.Stage("game_canvas");
+			width = stage.canvas.width;
+			height = stage.canvas.height;
+
+			//background
+			var bg1 = new createjs.Bitmap("assets/bg/image3.jpg");
+			var bg2 = new createjs.Bitmap("assets/bg/image3.jpg");
+			var bg3 = new createjs.Bitmap("assets/bg/bg_image.png"); 
+			var bg4 = new createjs.Bitmap("assets/bg/image 5.png");
+			bg2.x = width;
+			bg4.x = width*2;
+
+			//enemy monster
+			// var monster = new createjs.Bitmap("assets/play/image 11.png");
+			var mss = new createjs.SpriteSheet(
+			{ 
+				"animations":
+					{
+						"idle":[1,14]
+					},
+		        "images":["assets/play/image 11.png"],
+		        "framerate":20,
+		        "frames":{
+		            "regX":10,
+		            "regY":10,
+		            "height": 397/4,
+		            "width":433/4
+		        }
+		    });
+
+			var monster = new createjs.Sprite(mss,"idle");
+			monster.x = width;
+
+			//coin
+			var css = new createjs.SpriteSheet(
+			{ 
+				"animations":
+					{
+						"idle":[0,5]
+					},
+		        "images":["assets/play/image 16.png"],
+		        "framerate":20,
+		        "frames":{
+		            "regX":10,
+		            "regY":10,
+		            "height": 142/2,
+		            "width":210/3
+		        }
+		    });
+
+			var coin = new createjs.Sprite(css,"idle");
+			coin.x = width;
+
+			// character
+			var ss = new createjs.SpriteSheet(
+			{ 
+				"animations":
+					{
+						"run":[0,2]
+					},
+		        "images":["assets/char.png"],
+		        "framerate":20,
+		        "frames":{
+		            "regX":10,
+		            "regY":10,
+		            "height": 80,
+		            "width":330/3
+		        }
+		    });
+
+			// animation & char object
+		    var sprite = new createjs.Sprite(ss, "run");
+		    sprite.scaleX = sprite.scaleY = 1.5;
+		    sprite.x = 100;
+
+		    //window key event
+		    window.onkeypress = function(e){
+		    	if(e.keyCode == 32)
+	    		{
+	    			isFly = true;
+	    		}
+		    };
+
+		     window.onkeyup = function(e){
+		    	isFly = false;
+		    };
+		    
+		    // update canvas
+		    createjs.Ticker.addEventListener("tick", function(){
+		    	//background movement
+
+		    	bg1.x -= speed;
+		    	bg2.x -= speed;
+		    	bg3.x -= speed/3;
+		    	bg4.x -= speed/3;
+		    	if(bg1.x <= -width)
+		    	{
+		    		bg1.x = width;
+		    	}
+		    	if(bg2.x <= -width)
+		    	{
+		    		bg2.x = width;
+		    	}
+		    	if(bg3.x <= -width*2)
+		    	{
+		    		bg3.x = width;
+		    	}
+		    	if(bg4.x <= -width*2)
+		    	{
+		    		bg4.x = width;
+		    	}
+
+		    	//character
+		    	if(isFly)
+		    	{
+		    		if(sprite.y>20)
+		    			sprite.y -= 20;
+		    	}
+		    	else
+		    	{
+		    		if(sprite.y < stage.canvas.height-100)
+ 		    		sprite.y += 20;
+		    	}
+
+		    	// monster 
+		    	monster.x -= speed*2;
+		    	if(monster.x < -433/4)
+		    	{	
+		    		reset_pos(monster);
+		    	}
+ 		    	
+		    	// coin
+		    	coin.x -= speed*2;
+		    	if(coin.x < -210/3)
+		    	{
+		    		reset_pos(coin);
+		    	}
+
+ 		    	// hitTest monster and sprite
+ 		    	var pt;
+ 		    	pt = sprite.localToLocal(50,50,monster);
+				if (monster.hitTest(pt.x,pt.y)) 
+				{ 
+					speed = 0;
+					stage.removeChild(monster);
+				}
+				pt = sprite.localToLocal(0,0,coin);
+				if (coin.hitTest(pt.x,pt.y)) 
+				{ 
+					reset_pos(coin);
+					score+=100;
+					console.log(score);
+				}
+
+ 		    	stage.update();
+		    });
+		    
+
+		    //sound
+		    createjs.Sound.addEventListener("fileload", createjs.proxy(this.loadHandler, this));
+ 			createjs.Sound.registerSound("assets/sound/sound44.mp3", "sound");
+ 
+
+		    //attach
+		    stage.addChild(bg1);
+			stage.addChild(bg2);
+			stage.addChild(bg3);
+			stage.addChild(bg4);
+			
+			stage.addChild(monster);
+			stage.addChild(coin);
+			stage.addChild(sprite);
+
+		}
+	</script>
+</head>
+<body onload='init()'>
+	<center>
+	<canvas id='game_canvas' width="1000" height="500" style='border:2px red solid'>
+	</canvas>
+	</center>
+</body>
+</html>
